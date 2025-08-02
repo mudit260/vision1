@@ -1,9 +1,8 @@
 services:
   - type: web
     name: gemini-gradio-app
-    env: python
-    buildCommand: ./render-build.sh
-    startCommand: python New_for_deploying.py
+    env: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_VJOpQKaF5b7N@ep-sweet-dew-ae7b9y9b-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
