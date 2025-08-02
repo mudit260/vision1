@@ -1,12 +1,14 @@
 import gradio as gr
 from PIL import Image, UnidentifiedImageError
 from pdf2image import convert_from_bytes
-import pytesseract
 import google.generativeai as genai
 import io
 import os
 import psycopg2
 from datetime import datetime
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 
 # === Configure Gemini ===
 genai.configure(api_key=os.getenv("AIzaSyCK0zO_Sgwjf5V9Ml6NLdWs3Q0yboNWWT8"))
@@ -95,6 +97,7 @@ with gr.Blocks() as demo:
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", 7860)))
+
 
 
 
