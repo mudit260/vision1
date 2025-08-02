@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-# Install system dependencies
+# System dependencies
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     poppler-utils \
@@ -10,18 +10,20 @@ RUN apt-get update && apt-get install -y \
     libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
+# Set working directory
 WORKDIR /app
 
-# Copy app code
+# Copy project files
 COPY . /app
 
-# Install Python packages
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port Render will use
-ENV PORT 7860
+# Set environment variable so Gradio binds to 0.0.0.0
+ENV GRADIO_SERVER_NAME=0.0.0.0
+
+# Expose default Gradio port
 EXPOSE 7860
 
-# Start your app
+# Run your app
 CMD ["python", "New_for_deploying.py"]
