@@ -2,10 +2,10 @@ services:
   - type: web
     name: gemini-gradio-app
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: ./render-build.sh
     startCommand: python New_for_deploying.py
     envVars:
-      - key: postgresql://neondb_owner:npg_VJOpQKaF5b7N@ep-sweet-dew-ae7b9y9b-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-        sync: false
-      - key: AIzaSyCK0zO_Sgwjf5V9Ml6NLdWs3Q0yboNWWT8
-        sync: false
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_VJOpQKaF5b7N@ep-sweet-dew-ae7b9y9b-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: GEMINI_API_KEY
+        value: AIzaSyCK0zO_Sgwjf5V9Ml6NLdWs3Q0yboNWWT8
