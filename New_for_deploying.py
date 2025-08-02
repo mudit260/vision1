@@ -53,8 +53,8 @@ def gemini_understand_image(image):
         return f"⚠️ Gemini Vision Error: {e}"
 
 def process_file(file):
-    file_bytes = file.read()
-    save_file_to_db(file.name, file_bytes)
+    file_bytes = file  # file is already bytes because type="binary"
+    save_file_to_db("uploaded_file", file_bytes)
     byte_stream = io.BytesIO(file_bytes)
 
     try:
@@ -83,6 +83,7 @@ def process_file(file):
     except Exception as e:
         return f"❌ Error while processing: {str(e)}"
 
+
 # === Gradio UI ===
 with gr.Blocks() as demo:
     gr.Markdown("## 🔍 Gemini Vision + OCR Tool\nUpload a PDF or Image")
@@ -94,6 +95,7 @@ with gr.Blocks() as demo:
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", 7860)))
+
 
 
 
