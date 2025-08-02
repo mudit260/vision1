@@ -87,10 +87,11 @@ def process_file(file):
 with gr.Blocks() as demo:
     gr.Markdown("## 🔍 Gemini Vision + OCR Tool\nUpload a PDF or Image")
     with gr.Row():
-        file_input = gr.File(label="Upload File", type="file")
+        file_input = gr.File(label="Upload File", type="binary")
         output = gr.Textbox(label="Output", lines=30)
     btn = gr.Button("Analyze")
 
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch()
+
