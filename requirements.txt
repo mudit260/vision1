@@ -1,0 +1,6 @@
+gradio
+pytesseract
+pdf2image
+Pillow
+google-generativeai
+psycopg2-binary  # for PostgreSQL
