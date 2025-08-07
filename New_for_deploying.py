@@ -6,17 +6,14 @@ import io
 import os
 import psycopg2
 from datetime import datetime
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-
 
 # === Configure Gemini ===
-genai.configure(api_key=os.getenv("AIzaSyCK0zO_Sgwjf5V9Ml6NLdWs3Q0yboNWWT8"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 vision_model = genai.GenerativeModel("gemini-1.5-flash")
 
 # === PostgreSQL Connection ===
 def get_db_connection():
-    return psycopg2.connect(os.getenv("postgresql://neondb_owner:npg_VJOpQKaF5b7N@ep-sweet-dew-ae7b9y9b-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"))
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 def save_file_to_db(filename, content_bytes):
     try:
@@ -40,10 +37,7 @@ def save_file_to_db(filename, content_bytes):
     except Exception as e:
         print("❌ DB Error:", e)
 
-# === OCR + Gemini ===
-def extract_text_from_image(image):
-    return pytesseract.image_to_string(image)
-
+# === Gemini Vision Only ===
 def gemini_understand_image(image):
     try:
         response = vision_model.generate_content([
@@ -55,50 +49,34 @@ def gemini_understand_image(image):
         return f"⚠️ Gemini Vision Error: {e}"
 
 def process_file(file):
-    file_bytes = file  # file is already bytes because type="binary"
+    file_bytes = file
     save_file_to_db("uploaded_file", file_bytes)
     byte_stream = io.BytesIO(file_bytes)
 
     try:
         image = Image.open(byte_stream)
-        ocr_text = extract_text_from_image(image).strip()
         gemini_summary = gemini_understand_image(image)
-        return f"""🖼️ Image Analysis:
-🔹 OCR Text:
-{ocr_text or '[No text found]'}
-
-🔹 Gemini Vision:
+        return f"""🖼️ Gemini Vision Summary:
 {gemini_summary or '[No output]'}"""
     except UnidentifiedImageError:
         pages = convert_from_bytes(file_bytes, dpi=300)
         result = ""
         for i, page in enumerate(pages):
-            ocr_text = extract_text_from_image(page).strip()
             gemini_summary = gemini_understand_image(page)
             result += f"""\n📄 Page {i+1}:
-🔹 OCR Text:
-{ocr_text or '[No text found]'}
-
-🔹 Gemini Vision:
 {gemini_summary or '[No output]'}\n"""
         return result.strip()
     except Exception as e:
         return f"❌ Error while processing: {str(e)}"
 
-
 # === Gradio UI ===
 with gr.Blocks() as demo:
-    gr.Markdown("## 🔍 Gemini Vision + OCR Tool\nUpload a PDF or Image")
+    gr.Markdown("## 🤖 Gemini Vision Tool\nUpload a PDF or Image")
     with gr.Row():
         file_input = gr.File(label="Upload File", type="binary")
-        output = gr.Textbox(label="Output", lines=30)
+        output = gr.Textbox(label="Gemini Output", lines=30)
     btn = gr.Button("Analyze")
 
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", 7860)))
-
-
-
-
-
