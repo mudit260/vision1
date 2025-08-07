@@ -37,11 +37,11 @@ def save_file_to_db(filename, content_bytes):
     except Exception as e:
         print("❌ DB Error:", e)
 
-# === Gemini Vision Only ===
-def gemini_understand_image(image):
+# === Gemini Vision OCR Only ===
+def gemini_extract_text(image):
     try:
         response = vision_model.generate_content([
-            "Describe or summarize the contents of this image clearly.",
+            "Extract the raw text (OCR) from this image exactly as it appears. Do not summarize or interpret it.",
             image
         ])
         return response.text.strip()
@@ -55,27 +55,28 @@ def process_file(file):
 
     try:
         image = Image.open(byte_stream)
-        gemini_summary = gemini_understand_image(image)
-        return f"""🖼️ Gemini Vision Summary:
-{gemini_summary or '[No output]'}"""
+        gemini_text = gemini_extract_text(image)
+        return f"""🖼️ Gemini OCR Text:
+{gemini_text or '[No text extracted]'}"""
     except UnidentifiedImageError:
+        # Process PDF pages
         pages = convert_from_bytes(file_bytes, dpi=300)
         result = ""
         for i, page in enumerate(pages):
-            gemini_summary = gemini_understand_image(page)
-            result += f"""\n📄 Page {i+1}:
-{gemini_summary or '[No output]'}\n"""
+            gemini_text = gemini_extract_text(page)
+            result += f"""\n📄 Page {i+1} OCR:
+{gemini_text or '[No text extracted]'}\n"""
         return result.strip()
     except Exception as e:
         return f"❌ Error while processing: {str(e)}"
 
 # === Gradio UI ===
 with gr.Blocks() as demo:
-    gr.Markdown("## 🤖 Gemini Vision Tool\nUpload a PDF or Image")
+    gr.Markdown("## 🧾 Gemini OCR Tool\nUpload a PDF or Image to extract raw text")
     with gr.Row():
         file_input = gr.File(label="Upload File", type="binary")
-        output = gr.Textbox(label="Gemini Output", lines=30)
-    btn = gr.Button("Analyze")
+        output = gr.Textbox(label="OCR Output", lines=30)
+    btn = gr.Button("Extract OCR Text")
 
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
