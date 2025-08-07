@@ -49,29 +49,32 @@ def gemini_extract_text(image):
         return f"⚠️ Gemini Vision Error: {e}"
 
 # === File Processing ===
-def process_file(file):
-    file_bytes = file.read()       # ✅ read the file content
-    filename = file.name           # ✅ get actual filename
-    save_file_to_db(filename, file_bytes)
-
-    byte_stream = io.BytesIO(file_bytes)
-
+def process_file(file_path):
     try:
-        image = Image.open(byte_stream)
-        gemini_text = gemini_extract_text(image)
-        return f"""🖼️ Gemini OCR Text:
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+        filename = os.path.basename(file_path)  # Extract actual filename
+
+        save_file_to_db(filename, file_bytes)
+
+        byte_stream = io.BytesIO(file_bytes)
+
+        try:
+            image = Image.open(byte_stream)
+            gemini_text = gemini_extract_text(image)
+            return f"""🖼️ Gemini OCR Text:
 {gemini_text or '[No text extracted]'}"""
-    except UnidentifiedImageError:
-        # If not an image, treat as PDF
-        pages = convert_from_bytes(file_bytes, dpi=300)
-        result = ""
-        for i, page in enumerate(pages):
-            gemini_text = gemini_extract_text(page)
-            result += f"""\n📄 Page {i+1} OCR:
+        except UnidentifiedImageError:
+            # If not an image, treat as PDF
+            pages = convert_from_bytes(file_bytes, dpi=300)
+            result = ""
+            for i, page in enumerate(pages):
+                gemini_text = gemini_extract_text(page)
+                result += f"""\n📄 Page {i+1} OCR:
 {gemini_text or '[No text extracted]'}\n"""
-        return result.strip()
+            return result.strip()
     except Exception as e:
-        return f"❌ Error while processing: {str(e)}"
+        return f"❌ Error: {e}"
 
 # === Gradio UI ===
 with gr.Blocks() as demo:
@@ -84,3 +87,4 @@ with gr.Blocks() as demo:
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", 7860)))
+
