@@ -53,8 +53,8 @@ def process_file(file_path):
     try:
         with open(file_path, "rb") as f:
             file_bytes = f.read()
-        filename = os.path.basename(file_path)  # Extract actual filename
 
+        filename = os.path.basename(file_path)
         save_file_to_db(filename, file_bytes)
 
         byte_stream = io.BytesIO(file_bytes)
@@ -65,7 +65,7 @@ def process_file(file_path):
             return f"""🖼️ Gemini OCR Text:
 {gemini_text or '[No text extracted]'}"""
         except UnidentifiedImageError:
-            # If not an image, treat as PDF
+            # If not image, try PDF
             pages = convert_from_bytes(file_bytes, dpi=300)
             result = ""
             for i, page in enumerate(pages):
@@ -75,6 +75,7 @@ def process_file(file_path):
             return result.strip()
     except Exception as e:
         return f"❌ Error: {e}"
+
 
 # === Gradio UI ===
 with gr.Blocks() as demo:
@@ -87,4 +88,5 @@ with gr.Blocks() as demo:
     btn.click(fn=process_file, inputs=file_input, outputs=output)
 
 demo.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", 7860)))
+
 
