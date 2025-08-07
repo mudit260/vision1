@@ -48,10 +48,12 @@ def gemini_extract_text(image):
     except Exception as e:
         return f"⚠️ Gemini Vision Error: {e}"
 
+# === File Processing ===
 def process_file(file):
-    file_bytes = file.read()
-    filename = file.name
+    file_bytes = file.read()       # ✅ read the file content
+    filename = file.name           # ✅ get actual filename
     save_file_to_db(filename, file_bytes)
+
     byte_stream = io.BytesIO(file_bytes)
 
     try:
@@ -60,6 +62,7 @@ def process_file(file):
         return f"""🖼️ Gemini OCR Text:
 {gemini_text or '[No text extracted]'}"""
     except UnidentifiedImageError:
+        # If not an image, treat as PDF
         pages = convert_from_bytes(file_bytes, dpi=300)
         result = ""
         for i, page in enumerate(pages):
@@ -74,7 +77,7 @@ def process_file(file):
 with gr.Blocks() as demo:
     gr.Markdown("## 🧾 Gemini OCR Tool\nUpload a PDF or Image to extract raw text")
     with gr.Row():
-        file_input = gr.File(label="Upload File", type="binary")
+        file_input = gr.File(label="Upload File", type="file")  # ✅ changed to 'file'
         output = gr.Textbox(label="OCR Output", lines=30)
     btn = gr.Button("Extract OCR Text")
 
