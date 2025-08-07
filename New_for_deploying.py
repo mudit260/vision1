@@ -49,8 +49,9 @@ def gemini_extract_text(image):
         return f"⚠️ Gemini Vision Error: {e}"
 
 def process_file(file):
-    file_bytes = file
-    save_file_to_db("uploaded_file", file_bytes)
+    file_bytes = file.read()
+    filename = file.name
+    save_file_to_db(filename, file_bytes)
     byte_stream = io.BytesIO(file_bytes)
 
     try:
@@ -59,7 +60,6 @@ def process_file(file):
         return f"""🖼️ Gemini OCR Text:
 {gemini_text or '[No text extracted]'}"""
     except UnidentifiedImageError:
-        # Process PDF pages
         pages = convert_from_bytes(file_bytes, dpi=300)
         result = ""
         for i, page in enumerate(pages):
